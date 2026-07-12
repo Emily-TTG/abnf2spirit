@@ -28,7 +28,7 @@ target_link_libraries(abnf2spirit_mime PRIVATE Boost::fusion Boost::spirit_x4)
 
 target_include_directories(
 		abnf2spirit_mime PRIVATE
-		${ABNF2SPIRIT_MIME_GRAMMAR_DIR})
+		${CMAKE_CURRENT_BINARY_DIR}/include)
 
 target_include_directories(
 		abnf2spirit_mime PUBLIC
