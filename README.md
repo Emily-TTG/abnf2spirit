@@ -17,6 +17,14 @@ regressions until it reaches the Boost superproject.
 
 ## CMake Integration
 
+You can consume the generator directly by including the `Generate.cmake` file
+which exposes the generate tool as `abnf2spirit_generate_grammar`.
+
+If you want to use the MIME parser lib, you can `add_subdirectory` the project
+root which will provide the `abnf2spirit::mime` target. You will need to have
+the `Boost::spirit_x4` and `Boost::fusion` targets in the parent directory's
+scope.
+
 This file is a part of the abnf2spirit
 (https://github.com/Emily-TTG/abnf2spirit) project, which is used under
 the terms of the MIT/X11 licence.
