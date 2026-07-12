@@ -1,0 +1,194 @@
+; SPDX-License-Identifier: X11
+; Copyright (C) 2026 Emily "TTG" Banerjee <prs.ttg+abnf2spirit@pm.me>
+
+; RFC 2045 §5.1 in RFC 822 augmented-BNF notation
+;
+; AMENDMENTS
+; - Base RFC uses `=` instead of the ABNF `=`.
+;
+; - Errata ID 512 (Verified):
+; tspecials: restore the dropped "/" separator.
+;
+; - RFC 2231 §7:
+; parameter value continuations (sectioned parameters) + charset/language
+; extended values; supersedes RFC 2045 `parameter` and `attribute`.
+;
+; - RFC 2978 §2.3:
+; `charset` name syntax (mime-charset); replaces RFC 2231's prose.
+;
+; - RFC 5646 §2.1 (BCP 47):
+; `Language-Tag`; resolves RFC 2231's `language` (was obsolete RFC 1766).
+;
+; - RFC 6838 §4.2:
+; `restricted-name`; supersedes the RFC 2045 discrete/composite type + *-token
+; apparatus as the lexical form of `type` and `subtype`.
+;
+; - RFC 6839:
+; structured-syntax suffixes ("+json", "+xml", ...) reached via 6838's "+".
+;
+; - RFC 5322 §3.2 (RFC 822 rules):
+; `quoted-string`, `qtext`, `quoted-pair`, `FWS`
+;
+; - RFC 5234 §B.1
+; ALPHA, DIGIT, DQUOTE, VCHAR, WSP, CRLF
+;
+; - RFC 6532 §3.1-3.2 + RFC 3629 §4:
+; UTF-8-non-ascii; under 6532 qtext =/ UTF8-non-ascii, so `quoted-string`
+; parameter values carry UTF-8 (with RFC 2231 extended-parameter
+; percent-encoding).
+;
+; - OWS (RFC 9110 §5.6.3 idiom):
+; optional whitespace around ":" and ";" -- the inter-token LWS RFC 2045
+; inherits from RFC 822 but omits from its ABNF. Values assumed unfolded.
+;
+
+
+
+; RFC 2045 §5.1
+; > In the Augmented BNF notation of RFC 822, a Content-Type header field
+; > value is defined as follows:
+
+content = "Content-Type" ":" OWS type "/" subtype *( OWS ";" OWS parameter )
+
+; RFC 6838 §4.2
+; Supersedes the RFC 2045 discrete-type/...
+type = restricted-name
+subtype = restricted-name
+
+; RFC 6838 §4.2
+restricted-name = restricted-name-first *126restricted-name-chars
+restricted-name-first = ALPHA / DIGIT
+restricted-name-chars = ALPHA / DIGIT / "!" / "#" / "$" / "&" / "-" / "^" /
+                        "_" / "." / "+"
+
+; RFC 2231 §7
+; Supersedes RFC 2045 `parameter = attribute "=" value`, adding sectioned
+; value continuations and charset/language-tagged extended values.
+parameter = regular-parameter / extended-parameter
+
+; RFC 2231 §7
+regular-parameter = regular-parameter-name "=" value
+
+; RFC 2231 §7
+regular-parameter-name = attribute [section]
+
+; RFC 2231 §7
+; Redefines RFC 2045 `attribute = token`; concretely excludes "*", "'", "%"
+; so the section / extended-value syntax stays unambiguous.
+attribute = 1*attribute-char
+
+; RFC 2231 §7; prose resolved: token-char less "%" (%x25), "'" (%x27),
+; "*" (%x2A). RFC 6532: parameter NAMES stay US-ASCII (not widened).
+attribute-char = %x21 / %x23-24 / %x26 / %x2B / %x2D-2E / %x30-39 /
+                 %x41-5A / %x5E-7E
+
+; RFC 2231 §7
+section = initial-section / other-sections
+
+; RFC 2231 §7
+initial-section = "*0"
+
+; RFC 2231 §7
+; Patched as the published Syntax Summary reads "...*DIGIT)" with a stray
+; trailing ")".
+other-sections = "*" ("1" / "2" / "3" / "4" / "5" /
+                 "6" / "7" / "8" / "9") *DIGIT
+
+; RFC 2231 §7
+; Patched as the published first syntax reads
+; `extended-initial-name "=" extended-value`, but no `extended-value` is
+; defined; reconciled to reference `extended-initial-value`.
+extended-parameter = (extended-initial-name "=" extended-initial-value) /
+                     (extended-other-names "=" extended-other-values)
+
+; RFC 2231 §7
+extended-initial-name = attribute [initial-section] "*"
+
+; RFC 2231 §7
+extended-other-names = attribute other-sections "*"
+
+; RFC 2231 §7
+; `language` slot referenced as `Language-Tag` (RFC 5646) to avoid colliding
+; with RFC 5646's own `language` primary-subtag production.
+extended-initial-value = [charset] "'" [Language-Tag] "'" extended-other-values
+
+; RFC 2231 §7
+extended-other-values = *(ext-octet / attribute-char)
+
+; RFC 2231 §7
+ext-octet = "%" 2(DIGIT / "A" / "B" / "C" / "D" / "E" / "F")
+
+; RFC 2978 §2.3 (mime-charset); resolves RFC 2231's `charset`
+charset = 1*charset-char
+charset-char = ALPHA / DIGIT / "!" / "#" / "$" / "%" / "&" / "'" / "+" / "-" /
+               "^" / "_" / "`" / "{" / "}" / "~"
+
+; RFC 5646 §2.1 (BCP 47) Language-Tag; resolves RFC 2231's `language` slot,
+; retargeted from the obsolete RFC 1766 prose-val.
+Language-Tag = langtag / privateuse / grandfathered
+langtag = language ["-" script] ["-" region] *("-" variant)
+          *("-" extension) ["-" privateuse]
+language = 2*3ALPHA ["-" extlang] / 4ALPHA / 5*8ALPHA
+extlang = 3ALPHA *2("-" 3ALPHA)
+script = 4ALPHA
+region = 2ALPHA / 3DIGIT
+variant = 5*8alphanum / (DIGIT 3alphanum)
+extension = singleton 1*("-" (2*8alphanum))
+singleton = DIGIT / %x41-57 / %x59-5A / %x61-77 / %x79-7A
+privateuse = "x" 1*("-" (1*8alphanum))
+grandfathered = irregular / regular
+irregular = "en-GB-oed" / "i-ami" / "i-bnn" / "i-default" / "i-enochian" /
+            "i-hak" / "i-klingon" / "i-lux" / "i-mingo" / "i-navajo" /
+            "i-pwn" / "i-tao" / "i-tay" / "i-tsu" / "sgn-BE-FR" /
+            "sgn-BE-NL" / "sgn-CH-DE"
+regular = "art-lojban" / "cel-gaulish" / "no-bok" / "no-nyn" / "zh-guoyu" /
+          "zh-hakka" / "zh-min" / "zh-min-nan" / "zh-xiang"
+alphanum = ALPHA / DIGIT
+
+; RFC 2045 §5.1 (referenced by RFC 2231)
+; UTF-8 only under `quoted-string` (RFC 6532 qtext).
+value = token / quoted-string
+
+; RFC 2045 §5.1
+; Filled in written note with ranges.
+; CHAR (%x01-7F) less SP (%x20), CTLs (%x00-1F, %x7F), and tspecials.
+token = 1*token-char
+token-char = %x21 / %x23-27 / %x2A-2B / %x2D-2E / %x30-39 / %x41-5A / %x5E-7E
+
+; RFC 2045 §5.1; with Errata ID 512 (Verified)
+; The base text omits the "/" after <"> , fusing the double-quote and "/" into
+; one malformed alternative.
+tspecials =  "(" / ")" / "<" / ">" / "@" / "," / ";" / ":" / "\" / DQUOTE /
+             "/" / "[" / "]" / "?" / "="
+
+; RFC 5322 §3.2.4 quoted-string
+; Scoped to a MIME parameter value. Wrapping [CFWS] (header comments/folding)
+; and obs-* forms are for message headers. Internal [FWS] retained.
+quoted-string = DQUOTE *([FWS] qcontent) [FWS] DQUOTE
+qcontent = qtext / quoted-pair
+
+; RFC 5322 §3.2.4; RFC 6532 §3.2 widens qtext.
+; Printable US-ASCII less DQUOTE (%x22) and "\" (%x5C), plus UTF-8.
+qtext = %x21 / %x23-5B / %x5D-7E / UTF8-non-ascii
+
+; RFC 5322 §3.2.1 quoted-pair (obs-qp omitted)
+quoted-pair = "\" (VCHAR / WSP)
+
+; RFC 5322 §3.2.2 folding white space (obs-FWS omitted)
+FWS = [*WSP CRLF] 1*WSP
+
+; OWS (RFC 9110 §5.6.3): optional inter-token whitespace RFC 2045 inherits
+; from RFC 822 LWS but omits from its ABNF. Woven around ":" and ";" in
+; `content`. Values assumed unfolded, so OWS excludes CRLF.
+OWS = *WSP
+
+; RFC 6532 §3.1
+UTF8-non-ascii = UTF8-2 / UTF8-3 / UTF8-4
+
+; RFC 3629 §4 (referenced by RFC 6532 §3.1)
+UTF8-2 = %xC2-DF UTF8-tail
+UTF8-3 = %xE0 %xA0-BF UTF8-tail / %xE1-EC 2( UTF8-tail ) /
+         %xED %x80-9F UTF8-tail / %xEE-EF 2( UTF8-tail )
+UTF8-4 = %xF0 %x90-BF 2( UTF8-tail ) / %xF1-F3 3( UTF8-tail ) /
+         %xF4 %x80-8F 2( UTF8-tail )
+UTF8-tail = %x80-BF

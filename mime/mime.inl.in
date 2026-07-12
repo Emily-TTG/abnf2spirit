@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: X11
+// Copyright (C) 2026 Emily "TTG" Banerjee <prs.ttg+abnf2spirit@pm.me>
+
+#pragma once
+
+#include <boost/spirit/x4/core/parser.hpp>
+#include <boost/spirit/x4/core/attribute.hpp>
+
+#include <boost/spirit/x4.hpp>
+
+namespace abnf2spirit::mime {
+{{GRAMMAR}}
+}

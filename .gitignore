@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: X11
+# Copyright (C) 2026 Emily "TTG" Banerjee <prs.ttg+abnf2spirit@pm.me>
+
+target/
+
+Cargo.lock
+
+.idea/
+.vs*/
