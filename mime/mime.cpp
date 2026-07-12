@@ -11,7 +11,7 @@
 
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace abnf2spirit::mime_detail {
+namespace abnf2spirit::mime::detail {
 	using range = std::ranges::subrange<std::string_view::const_iterator>;
 
 	struct parameter {
@@ -25,21 +25,21 @@ namespace abnf2spirit::mime_detail {
 	};
 }
 
-BOOST_FUSION_ADAPT_STRUCT(abnf2spirit::mime_detail::parameter, name, value)
-BOOST_FUSION_ADAPT_STRUCT(abnf2spirit::mime_detail::content, type, parameters)
+BOOST_FUSION_ADAPT_STRUCT(abnf2spirit::mime::detail::parameter, name, value)
+BOOST_FUSION_ADAPT_STRUCT(abnf2spirit::mime::detail::content, type, parameters)
 
-namespace abnf2spirit {
+namespace abnf2spirit::mime {
 	const auto content =
-			boost::spirit::x4::omit[boost::spirit::x4::no_case[boost::spirit::x4::lit("Content-Type")] >> ':' >> mime_grammar::OWS] >>
-			boost::spirit::x4::raw[mime_grammar::type >> '/' >> mime_grammar::subtype] >>
-			*(boost::spirit::x4::omit[mime_grammar::OWS >> ';' >> mime_grammar::OWS] >>
-					boost::spirit::x4::as<mime_detail::parameter>(
-							boost::spirit::x4::raw[mime_grammar::regular_parameter_name] >>
+			boost::spirit::x4::omit[boost::spirit::x4::no_case[boost::spirit::x4::lit("Content-Type")] >> ':' >> grammar::OWS] >>
+			boost::spirit::x4::raw[grammar::type >> '/' >> grammar::subtype] >>
+			*(boost::spirit::x4::omit[grammar::OWS >> ';' >> grammar::OWS] >>
+					boost::spirit::x4::as<detail::parameter>(
+							boost::spirit::x4::raw[grammar::regular_parameter_name] >>
 							boost::spirit::x4::omit['='] >>
-							boost::spirit::x4::raw[mime_grammar::value]));
+							boost::spirit::x4::raw[grammar::value]));
 
-	std::expected<mime::parsed, std::size_t> parse(const std::string_view string) {
-		mime_detail::content captured;
+	std::expected<parsed, std::size_t> parse(const std::string_view string) {
+		detail::content captured;
 
 		const auto result = boost::spirit::x4::parse(
 				string,
@@ -53,7 +53,7 @@ namespace abnf2spirit {
 					string.size() - result.remainder_str().size());
 		}
 
-		mime::parsed out{};
+		parsed out{};
 		out.type.assign(captured.type.begin(), captured.type.end());
 		for(const auto& [ name, value ] : captured.parameters) {
 			out.parameters.emplace(
