@@ -11,11 +11,11 @@
 #include <cstddef>
 
 namespace abnf2spirit::mime {
-	struct mime {
+	struct parsed {
 		std::string type;
 		std::unordered_map<std::string, std::string> parameters;
 	};
 
 	[[nodiscard]]
-	std::expected<mime, std::size_t> parse(std::string_view);
+	std::expected<parsed, std::size_t> parse(std::string_view);
 }

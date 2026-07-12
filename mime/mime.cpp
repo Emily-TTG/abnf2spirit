@@ -38,7 +38,7 @@ namespace abnf2spirit {
 							boost::spirit::x4::omit['='] >>
 							boost::spirit::x4::raw[mime_grammar::value]));
 
-	std::expected<mime, std::size_t> parse_mime(const std::string_view string) {
+	std::expected<parsed, std::size_t> parse_mime(const std::string_view string) {
 		mime_detail::content captured;
 
 		const auto result = boost::spirit::x4::parse(
@@ -53,7 +53,7 @@ namespace abnf2spirit {
 					string.size() - result.remainder_str().size());
 		}
 
-		mime out{};
+		parsed out{};
 		out.type.assign(captured.type.begin(), captured.type.end());
 		for(const auto& [ name, value ] : captured.parameters) {
 			out.parameters.emplace(
