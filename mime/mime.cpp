@@ -30,13 +30,13 @@ BOOST_FUSION_ADAPT_STRUCT(abnf2spirit::mime_detail::content, type, parameters)
 
 namespace abnf2spirit {
 	const auto content =
-			boost::spirit::x4::omit[boost::spirit::x4::no_case[boost::spirit::x4::lit("Content-Type")] >> ':' >> grammar::mime::OWS] >>
-			boost::spirit::x4::raw[grammar::mime::type >> '/' >> grammar::mime::subtype] >>
-			*(boost::spirit::x4::omit[grammar::mime::OWS >> ';' >> grammar::mime::OWS] >>
+			boost::spirit::x4::omit[boost::spirit::x4::no_case[boost::spirit::x4::lit("Content-Type")] >> ':' >> mime_grammar::OWS] >>
+			boost::spirit::x4::raw[mime_grammar::type >> '/' >> mime_grammar::subtype] >>
+			*(boost::spirit::x4::omit[mime_grammar::OWS >> ';' >> mime_grammar::OWS] >>
 					boost::spirit::x4::as<mime_detail::parameter>(
-							boost::spirit::x4::raw[grammar::mime::regular_parameter_name] >>
+							boost::spirit::x4::raw[mime_grammar::regular_parameter_name] >>
 							boost::spirit::x4::omit['='] >>
-							boost::spirit::x4::raw[grammar::mime::value]));
+							boost::spirit::x4::raw[mime_grammar::value]));
 
 	std::expected<mime, std::size_t> parse_mime(const std::string_view string) {
 		mime_detail::content captured;

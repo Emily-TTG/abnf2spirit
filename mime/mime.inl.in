@@ -8,6 +8,6 @@
 
 #include <boost/spirit/x4.hpp>
 
-namespace abnf2spirit::mime {
+namespace abnf2spirit::mime_grammar {
 {{GRAMMAR}}
 }
