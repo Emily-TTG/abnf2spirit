@@ -49,11 +49,11 @@ namespace abnf2spirit {
 		if(!result.completed() && !result.ok) {
 			// TODO(Emily): Wire in expectation points so this is actually
 			//              useful.
-			return std::unexpect(
+			return std::unexpected(
 					string.size() - result.remainder_str().size());
 		}
 
-		parsed out{};
+		mime::parsed out{};
 		out.type.assign(captured.type.begin(), captured.type.end());
 		for(const auto& [ name, value ] : captured.parameters) {
 			out.parameters.emplace(
