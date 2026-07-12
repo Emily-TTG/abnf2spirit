@@ -2,13 +2,9 @@
 # Copyright (C) 2026 Emily "TTG" Banerjee <prs.ttg+abnf2spirit@pm.me>
 
 [package]
-name = "grammar"
+name = "abnf2spirit"
 version = "0.1.0"
 edition = "2024"
-
-[[bin]]
-name = "generate-spirit-grammar"
-path = "src/main.rs"
 
 [dependencies]
 abnf = "0.13.0"
