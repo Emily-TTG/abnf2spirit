@@ -17,5 +17,5 @@ namespace abnf2spirit::mime {
 	};
 
 	[[nodiscard]]
-	std::expected<parsed, std::size_t> parse(std::string_view);
+	std::expected<parsed, std::size_t> parse(std::string_view, bool = true);
 }

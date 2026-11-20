@@ -29,8 +29,7 @@ BOOST_FUSION_ADAPT_STRUCT(abnf2spirit::mime::detail::parameter, name, value)
 BOOST_FUSION_ADAPT_STRUCT(abnf2spirit::mime::detail::content, type, parameters)
 
 namespace abnf2spirit::mime {
-	const auto content =
-			boost::spirit::x4::omit[boost::spirit::x4::no_case[boost::spirit::x4::lit("Content-Type")] >> ':' >> grammar::OWS] >>
+	const auto base =
 			boost::spirit::x4::raw[grammar::type >> '/' >> grammar::subtype] >>
 			*(boost::spirit::x4::omit[grammar::OWS >> ';' >> grammar::OWS] >>
 					boost::spirit::x4::as<detail::parameter>(
@@ -38,13 +37,25 @@ namespace abnf2spirit::mime {
 							boost::spirit::x4::omit['='] >>
 							boost::spirit::x4::raw[grammar::value]));
 
-	std::expected<parsed, std::size_t> parse(const std::string_view string) {
+	const auto content_type =
+			boost::spirit::x4::omit[boost::spirit::x4::no_case[
+					boost::spirit::x4::lit("Content-Type")] >>
+							':' >> grammar::OWS] >> base;
+
+	std::expected<parsed, std::size_t> parse(
+			const std::string_view string,
+			const bool omit_content_type) {
+
 		detail::content captured;
 
-		const auto result = boost::spirit::x4::parse(
-				string,
-				content,
-				captured);
+		boost::spirit::x4::parse_result_for<std::string_view> result{};
+
+		if(omit_content_type) {
+			result = boost::spirit::x4::parse(string, base, captured);
+		}
+		else {
+			result = boost::spirit::x4::parse(string, content_type, captured);
+		}
 
 		if(!result.completed() && !result.ok) {
 			// TODO(Emily): Wire in expectation points so this is actually
